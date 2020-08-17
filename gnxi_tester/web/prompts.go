@@ -29,6 +29,7 @@ func handlePromptsSet(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(prompts); err != nil {
 		logErr(r.Header, err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 	if err := prompts.Set(); err != nil {
 		logErr(r.Header, err)
