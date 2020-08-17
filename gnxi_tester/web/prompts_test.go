@@ -127,3 +127,51 @@ func TestHandlePromptsGet(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlePromptsList(t *testing.T) {
+	logErr = func(head http.Header, err error) {}
+	tests := []struct {
+		name     string
+		tests    config.Tests
+		order    []string
+		code     int
+		respBody string
+	}{
+		{
+			"no prompts",
+			config.Tests{"test": []config.Test{}},
+			[]string{""},
+			200,
+			"[]\n",
+		},
+		{
+			"multiple prompts",
+			config.Tests{
+				"test1": []config.Test{{Prompt: []string{"test1"}}},
+				"test2": []config.Test{{Prompt: []string{"test2"}}},
+			},
+			[]string{"test1", "test2"},
+			200,
+			"[\"test1\",\"test2\"]\n",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			viper.SetConfigFile("/tmp/config.yml")
+			viper.Set("tests", test.tests)
+			viper.Set("order", test.order)
+			rr := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/prompts/list", nil)
+			handler := http.HandlerFunc(handlePromptsList)
+			handler.ServeHTTP(rr, req)
+			if code := rr.Code; code != test.code {
+				t.Errorf("Wanted exit code %d but got %d.", test.code, code)
+			}
+			if b, err := ioutil.ReadAll(rr.Body); err != nil {
+				t.Errorf("Error when decoding body: %w", err)
+			} else if test.respBody != string(b) {
+				t.Errorf("Wanted %s but got %s.", test.respBody, string(b))
+			}
+		})
+	}
+}

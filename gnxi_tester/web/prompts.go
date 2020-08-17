@@ -17,10 +17,10 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/google/gnxi/gnxi_tester/config"
+	"github.com/spf13/viper"
 )
 
 // handleConfigSet will set the prompt config variables in persistent storage.
@@ -34,8 +34,6 @@ func handlePromptsSet(w http.ResponseWriter, r *http.Request) {
 		logErr(r.Header, err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, http.StatusText(http.StatusOK))
 }
 
 // handleConfigGet will get all prompt config variables from persistent storage.
@@ -49,5 +47,17 @@ func handlePromptsGet(w http.ResponseWriter, r *http.Request) {
 
 // handlePromptsList will give all the required fields needed to be given by the client.
 func handlePromptsList(w http.ResponseWriter, r *http.Request) {
-	// TODO: reflect fields of prompts.
+	tests := config.GetTests()
+	prompts := make([]string, 0)
+	for _, test := range viper.GetStringSlice("order") {
+		if majorTest, ok := tests[test]; ok {
+			for _, minorTest := range majorTest {
+				prompts = append(prompts, minorTest.Prompt...)
+			}
+		}
+	}
+	if err := json.NewEncoder(w).Encode(prompts); err != nil {
+		logErr(r.Header, err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }
