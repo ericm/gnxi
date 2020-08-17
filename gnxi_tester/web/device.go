@@ -56,6 +56,9 @@ func handleDeviceGet(w http.ResponseWriter, r *http.Request) {
 
 func handleDeviceSet(w http.ResponseWriter, r *http.Request) {
 	name := getNameParam(w, r)
+	if name == "" {
+		return
+	}
 	devices := config.GetDevices()
 	device := config.Device{}
 	if err := json.NewDecoder(r.Body).Decode(&device); err != nil {

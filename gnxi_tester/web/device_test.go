@@ -16,6 +16,7 @@ limitations under the License.
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/google/gnxi/gnxi_tester/config"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
@@ -67,6 +69,48 @@ func TestHandleDeviceGet(t *testing.T) {
 				t.Errorf("Error when decoding body: %w", err)
 			} else if test.respBody != string(b) {
 				t.Errorf("Wanted %s but got %s.", test.respBody, string(b))
+			}
+		})
+	}
+}
+
+func TestHandleDeviceSet(t *testing.T) {
+	logErr = func(head http.Header, err error) {}
+	tests := []struct {
+		name     string
+		testName string
+		code     int
+		body     string
+		devices  map[string]config.Device
+	}{
+		{
+			"empty body",
+			"name",
+			http.StatusInternalServerError,
+			"\n",
+			map[string]config.Device{},
+		},
+		{
+			"device found",
+			"name",
+			http.StatusOK,
+			"{\"address\":\"\",\"ca\":\"\",\"cakey\":\"\"}\n",
+			map[string]config.Device{"name": {}},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			viper.SetConfigFile("/tmp/config.yml")
+			viper.Set("targets.devices", test.devices)
+			rr := httptest.NewRecorder()
+			req, _ := http.NewRequest("POST", fmt.Sprintf("/device/%s", test.testName), bytes.NewBufferString(test.body))
+			router := mux.NewRouter()
+			router.HandleFunc("/device/{name}", handleDeviceSet).Methods("POST")
+			router.ServeHTTP(rr, req)
+			if code := rr.Code; code != test.code {
+				t.Errorf("Wanted exit code %d but got %d.", test.code, code)
+			} else if diff := cmp.Diff(test.devices, viper.Get("targets.devices")); diff != "" {
+				t.Errorf("Error in setting devicve (-want +got): %s", diff)
 			}
 		})
 	}
