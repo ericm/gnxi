@@ -33,7 +33,7 @@ func InitRouter(laddr string) {
 	r.HandleFunc("/device/{name}", handleDeviceSet).Methods("POST", "PUT")
 	r.HandleFunc("/file", handleFileUpload).Methods("POST")
 	r.HandleFunc("/file/{file}", handleFileDelete).Methods("DELETE")
-	r.HandleFunc("/run/{prompts}", handleRun).Methods("POST")
+	r.HandleFunc("/run", handleRun).Methods("POST")
 
 	if err := http.ListenAndServe(laddr, r); err != nil {
 		log.Exit(err)

@@ -23,6 +23,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+type promptListResponse struct {
+	Prompts []string `json:"prompts"`
+	Files   []string `json:"files"`
+}
+
 // handleConfigSet will set the prompt config variables in persistent storage.
 func handlePromptsSet(w http.ResponseWriter, r *http.Request) {
 	prompts := &config.Prompts{}
@@ -57,7 +62,14 @@ func handlePromptsList(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	if err := json.NewEncoder(w).Encode(prompts); err != nil {
+	fileConfig := viper.GetStringMapStringSlice("files")
+	files := make([]string, 0)
+	for _, majorTest := range fileConfig {
+		for _, file := range majorTest {
+			files = append(files, file)
+		}
+	}
+	if err := json.NewEncoder(w).Encode(promptListResponse{prompts, files}); err != nil {
 		logErr(r.Header, err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}

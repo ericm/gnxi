@@ -133,6 +133,7 @@ func TestHandlePromptsList(t *testing.T) {
 	tests := []struct {
 		name     string
 		tests    config.Tests
+		files    map[string][]string
 		order    []string
 		code     int
 		respBody string
@@ -140,9 +141,10 @@ func TestHandlePromptsList(t *testing.T) {
 		{
 			"no prompts",
 			config.Tests{"test": []config.Test{}},
+			map[string][]string{},
 			[]string{""},
 			200,
-			"[]\n",
+			"{\"prompts\":[],\"files\":[]}\n",
 		},
 		{
 			"multiple prompts",
@@ -150,9 +152,10 @@ func TestHandlePromptsList(t *testing.T) {
 				"test1": []config.Test{{Prompt: []string{"test1"}}},
 				"test2": []config.Test{{Prompt: []string{"test2"}}},
 			},
+			map[string][]string{"test1": {"test1"}},
 			[]string{"test1", "test2"},
 			200,
-			"[\"test1\",\"test2\"]\n",
+			"{\"prompts\":[\"test1\",\"test2\"],\"files\":[\"test1\"]}\n",
 		},
 	}
 	for _, test := range tests {
@@ -160,6 +163,7 @@ func TestHandlePromptsList(t *testing.T) {
 			viper.SetConfigFile("/tmp/config.yml")
 			viper.Set("tests", test.tests)
 			viper.Set("order", test.order)
+			viper.Set("files", test.files)
 			rr := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/prompts/list", nil)
 			handler := http.HandlerFunc(handlePromptsList)
