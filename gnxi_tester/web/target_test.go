@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func TestHandleDeviceGet(t *testing.T) {
+func TestHandleTargetGet(t *testing.T) {
 	logErr = func(head http.Header, err error) {}
 	tests := []struct {
 		name     string
@@ -60,7 +60,7 @@ func TestHandleDeviceGet(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", fmt.Sprintf("/device/%s", test.testName), nil)
 			router := mux.NewRouter()
-			router.HandleFunc("/device/{name}", handleDeviceGet).Methods("GET")
+			router.HandleFunc("/device/{name}", handleTargetGet).Methods("GET")
 			router.ServeHTTP(rr, req)
 			if code := rr.Code; code != test.code {
 				t.Errorf("Wanted exit code %d but got %d.", test.code, code)
@@ -74,7 +74,7 @@ func TestHandleDeviceGet(t *testing.T) {
 	}
 }
 
-func TestHandleDeviceSet(t *testing.T) {
+func TestHandleTargetSet(t *testing.T) {
 	logErr = func(head http.Header, err error) {}
 	tests := []struct {
 		name     string
@@ -105,7 +105,7 @@ func TestHandleDeviceSet(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req, _ := http.NewRequest("POST", fmt.Sprintf("/device/%s", test.testName), bytes.NewBufferString(test.body))
 			router := mux.NewRouter()
-			router.HandleFunc("/device/{name}", handleDeviceSet).Methods("POST")
+			router.HandleFunc("/device/{name}", handleTargetSet).Methods("POST")
 			router.ServeHTTP(rr, req)
 			if code := rr.Code; code != test.code {
 				t.Errorf("Wanted exit code %d but got %d.", test.code, code)

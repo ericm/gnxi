@@ -36,7 +36,7 @@ func getNameParam(w http.ResponseWriter, r *http.Request) string {
 	return name
 }
 
-func handleDeviceGet(w http.ResponseWriter, r *http.Request) {
+func handleTargetGet(w http.ResponseWriter, r *http.Request) {
 	name := getNameParam(w, r)
 	if name == "" {
 		return
@@ -54,7 +54,7 @@ func handleDeviceGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleDeviceSet(w http.ResponseWriter, r *http.Request) {
+func handleTargetSet(w http.ResponseWriter, r *http.Request) {
 	name := getNameParam(w, r)
 	if name == "" {
 		return
