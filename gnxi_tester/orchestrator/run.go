@@ -22,7 +22,6 @@ import (
 	"regexp"
 	"strings"
 
-	log "github.com/golang/glog"
 	"github.com/google/gnxi/gnxi_tester/config"
 	"github.com/spf13/viper"
 )
@@ -39,10 +38,12 @@ var (
 	input       = map[string]string{}
 	delimRe     = regexp.MustCompile(fmt.Sprintf("%s.*%s", openDelim, closeDelim))
 	files       map[string]string
+	infof       func(string, ...interface{})
 )
 
 // RunTests will take in test name and run each test or all tests.
-func RunTests(tests []string, prompt callbackFunc, userFiles map[string]string) (success []string, err error) {
+func RunTests(tests []string, prompt callbackFunc, userFiles map[string]string, logger func(string, ...interface{})) (success []string, err error) {
+	infof = logger
 	files = userFiles
 	required := viper.GetStringMapStringSlice("files")
 	defaultOrder := viper.GetStringSlice("order")
@@ -100,7 +101,7 @@ func checkFileProvided(fs []string, name string, prompt callbackFunc) error {
 }
 
 func runTest(name string, prompt callbackFunc, tests []config.Test) (string, error) {
-	log.Infof("Running major test %s", name)
+	infof("Running major test %s", name)
 	targetName := viper.GetString("targets.last_target")
 	target := config.GetDevices()[targetName]
 	defaultArgs := fmt.Sprintf(
@@ -110,7 +111,7 @@ func runTest(name string, prompt callbackFunc, tests []config.Test) (string, err
 	)
 	stdout := fmt.Sprintf("*%s*:", name)
 	for _, test := range tests {
-		log.Infof("Running minor test %s:%s", name, test.Name)
+		infof("Running minor test %s:%s", name, test.Name)
 		for _, p := range test.Prompt {
 			input[p] = prompt(p)
 		}
@@ -126,7 +127,7 @@ func runTest(name string, prompt callbackFunc, tests []config.Test) (string, err
 			return "", formatErr(name, test.Name, out, exp, code, test.MustFail, err)
 		}
 		stdout = fmt.Sprintf("%s\n%s:\n%s\n", stdout, test.Name, out)
-		log.Infof("Successfully run test %s:%s", name, test.Name)
+		infof("Successfully run test %s:%s", name, test.Name)
 	}
 	return stdout, nil
 }
